@@ -1,0 +1,181 @@
+#!markdown
+
+# Session 1 - Terraform Cloud 
+
+![Terraform Cloud](./images/terraform_cloud.png)
+
+Terraform Cloud is HashiCorp's managed SaaS offering. Terraform Cloud boasts such features as:
+- Run infrastructure as code remotely.
+- Create a self-service Infrastructure with a private registry.
+- Achieve multi-cloud compliance and Management.
+
+Terraform runs in a consistent and reliable environment, and includes easy access to shared state and secret data, access controls for approving changes to infrastructure, a private registry for sharing Terraform modules, detailed policy controls for governing content of Terraform configurations, and more...
+
+<img alt="Terraform Cloud Example" src="./images/tf_cloud_example.png" width="35%" height="35%"/>
+
+#!markdown
+
+## Free and Paid Services
+
+<img alt="Terraform Cloud Runs" src="./images/tfc_runs.png" width="75%" height="75%"/>
+
+### Terraform Cloud Free
+
+Some of the great features that Terraform Cloud offers are available for free.
+1. [Terraform Cloud Workspaces](https://www.terraform.io/cloud-docs/workspaces)
+2. [Remote operations, state management and versioning](https://www.terraform.io/cloud-docs/run)
+   - [Speculative Plans](https://www.terraform.io/cloud-docs/run/remote-operations#speculative-plans)
+3. [Ability to share information between workspaces](https://www.terraform.io/language/state/remote-state-data)
+4. [VCS Integration](https://www.terraform.io/cloud-docs/run/ui)
+5. [CLI Integration (Pipelines/Workflows)](https://www.terraform.io/cloud-docs/run/cli)
+6. [Private Registry](https://www.terraform.io/cloud-docs/registry)
+7. Integrations
+   1. [Full API](https://www.terraform.io/cloud-docs/api-docs)
+   2. [Notifications](https://www.terraform.io/cloud-docs/workspaces/settings/notifications)
+
+<img alt="Terraform Cloud - Applying" src="./images/tfc_applying.png" width="75%" height="75%" />
+
+#!markdown
+
+### Terraform Cloud - Access and Governance
+
+1. [Team management](https://www.terraform.io/cloud-docs/users-teams-organizations/teams)
+2. [Sentinel - Policy as Code](https://www.terraform.io/cloud-docs/sentinel)
+3. [Run Tasks](https://www.terraform.io/cloud-docs/workspaces/settings/run-tasks)
+
+<img alt="Sentinel" src="./images/sentinel.png" width="75%" height="75%" />
+
+#!markdown
+
+### Terraform Cloud - Business
+
+1. [Drift Detection](https://www.hashicorp.com/blog/terraform-cloud-adds-drift-detection-for-infrastructure-management) \
+    <img alt="Drift Detection" src="./images/drift_detection.png" width="75%" height="75%" />
+2. [SSO](https://www.terraform.io/enterprise/saml/configuration)
+3. [Audit Logs](https://www.terraform.io/cloud-docs/api-docs/audit-trails)
+4. [Self-Hosted Agents](https://www.terraform.io/cloud-docs/agents)
+   
+Honorable Mention - [Terraform Enterprise](https://www.terraform.io/enterprise)
+
+#!markdown
+
+## Getting Started with Terraform Cloud
+
+### Terraform Init
+```hcl
+terraform {
+    required_providers {
+      azurerm = {}
+    }
+}
+
+provider "azurerm" {
+  features {}
+}
+```
+
+#!pwsh
+
+cd .\tfc_workspace
+terraform init -upgrade; terraform validate
+
+#!pwsh
+
+az login
+$subscriptionId = "1c6b2cdf-74c6-448e-b9c2-79db4106600b"
+az ad sp create-for-rbac --role "Contributor" --name "mrb-terraform-topics" --scopes "/subscriptions/$subscriptionId" --sdk-auth
+
+#!markdown
+
+### Init with Terraform Cloud
+
+#NOTE:
+Environment Variables for AzureRM \
+ARM_CLIENT_ID \
+ARM_CLIENT_SECRET \
+ARM_SUBSCRIPTION_ID \
+ARM_TENANT_ID 
+
+```hcl
+terraform {
+    required_providers {
+      azurerm = {}
+    }
+
+    cloud {
+      organization = "insight"
+      workspaces {
+        name = "mrb-terraform-topics"
+      }
+    }
+}
+
+provider "azurerm" {
+  features {}
+}
+```
+
+#!pwsh
+
+terraform init -upgrade; terraform validate; terraform plan
+
+#!markdown
+
+## Terraform Cloud with Environment Variables (TF v1.2.0)
+
+In Terraform v1.2.0 the ability to set workspaces by environment variables were introduced. This requires only an empty cloud block within the terraform provider block. This allows for multi-workspace deployments via pipelines or workflows.
+
+```hcl
+terraform {
+    required_providers {
+      azurerm = {}
+    }
+    cloud {}
+}
+
+provider "azurerm" {
+  features {}
+}
+```
+
+#!pwsh
+
+$env:TF_CLOUD_ORGANIZATION="insight"
+$env:TF_WORKSPACE="mrb-terraform-topics"
+terraform init -upgrade; terraform validate; terraform plan
+
+#!markdown
+
+### Applying our code
+
+Now that we have a successful plan and the backend is in place. Let's try to apply our code and create a resource group.
+
+#!pwsh
+
+$env:TF_CLOUD_ORGANIZATION="insight"
+$env:TF_WORKSPACE="mrb-terraform-topics"
+terraform apply --auto-approve
+
+#!markdown
+
+## Publishing to the Private Module Registry
+
+Terraform Cloud provides the ability to host your custom modules in a registry. These modules can be retrieved from the registry for use in your code. In hosting your module, the registry makes available all tagged versions of the module and hosts their README.md file on the module's home page. Details are also provided by the registry on the minimal ways to consume the module and any statistics about the use of the module.
+
+#!pwsh
+
+cd ..\tfc_module
+$env:TF_CLOUD_ORGANIZATION="insight"
+$env:TF_WORKSPACE="mrb-terraform-topics-module"
+$env:GITHUB_OWNER="Insight-NA"
+$env:GITHUB_TOKEN="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"
+terraform init -upgrade; terraform validate; terraform plan
+
+#!markdown
+
+## Cleanup
+
+#!pwsh
+
+terraform destroy --auto-approve
+az ad sp delete --id "efa02987-f044-4bff-b1b4-e3fd6c1cc2a4"
