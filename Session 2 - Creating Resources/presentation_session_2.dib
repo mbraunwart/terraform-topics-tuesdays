@@ -221,7 +221,7 @@ created key [bbcd80a528c3137dab4cea4b28035a288f2822e6] of type [json] as [creden
 
 #!markdown
 
-### Configuring Terraform Cloud Workspaces for Docker
+### Configuring Terraform Cloud Workspaces for Docker - GOOD LUCK
 
 Unlike the cloud providers which have a minimal amount of configuration necessary to authenticate. Docker has an added `registry_path` block. The `registry_path` block can take 3 types of authentication configuration attributes. Configuration formats are preferred in this order.
 - `config_file` path to a docker configuration json file.
@@ -358,3 +358,7 @@ Please see the following for more information on Types and Style Conventions
 - [Resource Meta-Arguments](https://developer.hashicorp.com/terraform/language/resources/syntax#meta-arguments)
 - [Lifecycle Meta-Argument](https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle)
 - [Style Convention](https://developer.hashicorp.com/terraform/language/syntax/style)
+
+#!markdown
+
+![App Service Deploy](./images/app_service_deploy.png)
