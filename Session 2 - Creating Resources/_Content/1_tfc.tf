@@ -12,7 +12,7 @@ resource "tfe_workspace" "azure" {
   name         = "${local.workspace_prefix}-azure"
   organization = data.tfe_organization.org.name
 
-  working_directory = "./Session 2 - Creating Resources/Azure"
+  working_directory = "./Session 2 - Creating Resources/Azure/Base"
 }
 
 resource "tfe_variable" "arm_subscription_id" {
