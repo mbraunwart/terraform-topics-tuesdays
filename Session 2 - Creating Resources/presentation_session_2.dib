@@ -1,0 +1,360 @@
+#!markdown
+
+# Session 2 - Creating Resoures
+
+## Configuring Terraform Cloud Workspaces with Cloud Providers
+
+#!markdown
+
+### Configuring Terraform Cloud Workspaces for AWS
+
+- If this is the first time using AWS, please be sure to create an [Administrator User](https://docs.aws.amazon.com/IAM/latest/UserGuide/getting-started_create-admin-group.html) before continuing.
+- Create a User Group for your terraform service account
+
+`aws iam create-group --group-name Terraform`
+
+```json
+{
+    "Group": {
+        "Path": "/",
+        "GroupName": "Terraform",
+        "GroupId": "AGPA4VEAXZCX7VAPLM6DP",
+        "Arn": "arn:aws:iam::870000871599:group/Terraform",
+        "CreateDate": "2022-10-15T18:06:26+00:00"
+    }
+}
+```
+
+- Attach AdministratorAccess policy to the newly created group (Or preferrably a more defined custom role for Terraform service accounts)
+
+`aws iam attach-group-policy --group-name Terraform --policy-arn arn:aws:iam::aws:policy/AdministratorAccess` \
+`aws iam list-attached-group-policies --group-name Terraform`
+
+```json
+{
+    "AttachedPolicies": [
+        {
+            "PolicyName": "AdministratorAccess",
+            "PolicyArn": "arn:aws:iam::aws:policy/AdministratorAccess"
+        }
+    ]
+}
+```
+
+- [Creating IAM Users - AWS CLI](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html#id_users_create_cliwpsapi)
+- Create a terraform service account
+
+`aws iam create-user --user-name <account_name>`
+
+```json
+{
+    "User": {
+        "Path": "/",
+        "UserName": "terraform-topics-sa",
+        "UserId": "AIDA4VEAXZCXWOQID2NDH",
+        "Arn": "arn:aws:iam::870000871599:user/terraform-topics-sa",
+        "CreateDate": "2022-10-15T18:13:10+00:00"
+    }
+}
+```
+
+- Create an access key for the new service account
+
+`aws iam create-access-key --user-name <account_name>`
+
+```json
+{
+    "AccessKey": {
+        "UserName": "terraform-topics-sa",
+        "AccessKeyId": "AKIA4VEAXZCXZNT2KBZY",
+        "Status": "Active",
+        "SecretAccessKey": "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",
+        "CreateDate": "2022-10-15T18:15:42+00:00"
+    }
+}
+```
+
+- Added the new user to the Terraform group created previously
+
+`aws iam add-user-to-group --group-name Terraform --user-name <account_name>`
+
+- Verify that user is in group
+
+`aws iam list-groups-for-user --user-name <account_name>`
+
+```json
+{
+    "Groups": [
+        {
+            "Path": "/",
+            "GroupName": "Terraform",
+            "GroupId": "AGPA4VEAXZCX7VAPLM6DP",
+            "Arn": "arn:aws:iam::870000871599:group/Terraform",
+            "CreateDate": "2022-10-15T18:06:26+00:00"
+        }
+    ]
+}
+```
+
+#### Set Environment Variables in Terraform Cloud Workspace
+
+- AWS_ACCESS_KEY_ID - `AccessKeyId` when creating account.
+- AWS_SECRET_ACCESS_KEY - `SecreteAccessKey` when creating account.
+- AWS_REGION - Can set region globally for provider.
+
+#!markdown
+
+### Configuring Terraform Cloud Workspaces for Azure
+
+- Get Subscription ID
+- Login to AZ CLI with your account.
+- Create a service principal with the proper scope (current scope is subscription level)
+
+```powershell
+az login
+$subscriptionId = "subscription_id"
+az ad sp create-for-rbac --role "Contributor" --name "service_principal_name" --scopes "/subscriptions/$subscriptionId" --sdk-auth
+```
+
+- `--sdk-auth` output produces a json file in which the information can be cherry picked
+```json
+{
+  "clientId": "efa02987-f044-4bff-b1b4-e3fd6c1cc2a4",
+  "clientSecret": "cYz8Q~ejcUnp1Qm2ddN3A3Gqq0eZ_Koyy8kE~cak",
+  "subscriptionId": "1c6b2cdf-74c6-448e-b9c2-79db4106600b",
+  "tenantId": "6c637512-c417-4e78-9d62-b61258e4b619",
+  "activeDirectoryEndpointUrl": "https://login.microsoftonline.com",
+  "resourceManagerEndpointUrl": "https://management.azure.com/",
+  "activeDirectoryGraphResourceId": "https://graph.windows.net/",
+  "sqlManagementEndpointUrl": "https://management.core.windows.net:8443/",
+  "galleryEndpointUrl": "https://gallery.azure.com/",
+  "managementEndpointUrl": "https://management.core.windows.net/"
+}
+```
+
+#### Set Environment Variables in Terraform Cloud Workspace
+
+- ARM_SUBSCRIPTION_ID - subscriptionId
+- ARM_TENANT_ID - tenantId
+- ARM_CLIENT_ID - clientId
+- ARM_CLIENT_SECRET - clientSecret
+
+#!markdown
+
+### Configuring Terraform Cloud Workspaces for GCP
+- Getting started with GCP
+- Download gcloud cli
+- Login to gcloud cli
+
+`gcloud auth login`
+- Sets credentials for terraform to consume.
+
+`gcloud auth application-default login`
+- Create project if one does not exist.
+
+`gcloud projects create project_id --name"Project Name" --labels key=value`
+
+Create Project
+```text
+Create in progress for [https://cloudresourcemanager.googleapis.com/v1/projects/mrb-base-prj].
+Waiting for [operations/cp.6538227819936736424] to finish...done.                                                                                   
+Enabling service [cloudapis.googleapis.com] on project [mrb-base-prj]...
+Operation "operations/acat.p2-530523172494-c6c945bc-bbc9-4974-b707-75ad4ebec6bf" finished successfully.
+```
+- Set project as target.
+
+`gcloud config set project project_id`
+- Create service account for terraform backend
+
+`gcloud iam service-accounts create service_account_name --description="<description>" --display-name="<display_name>"`
+- Add permissions to service account for impersonation
+
+`gcloud projects add-iam-policy-binding project_id --member"serviceAccount:service_account_name@project_id.iam.gserviceaccount.com" --role="roles/editor"`
+
+Permission Results
+```yaml
+Updated IAM policy for project [mrb-base-prj].
+bindings:
+- members:
+  - serviceAccount:env-matrix-workflow-sa@mrb-base-prj.iam.gserviceaccount.com
+  role: roles/editor
+- members:
+  - user:matt.braunwart@insight.com
+  role: roles/owner
+etag: BwXqpSfi7fY=
+version: 1
+```
+- Get policies for the service account and save to policy.json
+
+`gcloud iam service-accounts get-iam-policy service_account_name@project_id.iam.gserviceaccount.com --format=json > policy.json`
+- Add user to service account permissions
+
+`gcloud iam service-accounts set-iam-policy service_account_name@project_id.iam.gserviceaccount.com policy.json`
+
+```yaml
+Updated IAM policy for service account [env-matrix-workflow-sa@mrb-base-prj.iam.gserviceaccount.com].
+bindings:
+- members:
+  - user:matt.braunwart@insight.com
+  role: roles/iam.serviceAccountTokenCreator
+etag: BwXqtgkaxwU=
+version: 1
+```
+- Get service account credentials in a json file
+
+`gcloud iam service-accounts keys create credentials.json --iam-account service_account_name@project_id.iam.gserviceaccount.com`
+
+```text
+created key [bbcd80a528c3137dab4cea4b28035a288f2822e6] of type [json] as [credentials.json] for [env-matrix-workflow-sa@mrb-base-prj.iam.gserviceaccount.com]
+```
+- Using `Join Lines` in VS Code, copy the output from the `credentials.json` file.
+- Set in Terraform Cloud Workspace as `GOOGLE_CREDENTIALS` environment secret.
+
+#### Set Environment Variables in Terraform Cloud Workspace
+
+- GOOGLE_CREDENTIALS - minified version of `credentials.json` file.
+- Enable cloudresourcemanager.googleapis.com on the project before using terraform.
+
+#!markdown
+
+## Configuring Terraform Cloud Workspaces with Platform Providers
+
+#!markdown
+
+### Configuring Terraform Cloud Workspaces for Docker
+
+Unlike the cloud providers which have a minimal amount of configuration necessary to authenticate. Docker has an added `registry_path` block. The `registry_path` block can take 3 types of authentication configuration attributes. Configuration formats are preferred in this order.
+- `config_file` path to a docker configuration json file.
+- `config_file_content` plain text version of the docker configuration.
+- `username` and `password` 
+
+For our purposes today, we will be setting the `username` and `password` in the the provider block.
+
+- NOT FINISHED: Docker can only run with Terraform Cloud if using a self-hosted agent.
+
+#!markdown
+
+### Configuring Terraform Cloud Workspaces for TFE 
+
+- In Terraform Cloud, navigate to the user settings.
+
+<img alt="User Settings" src="./images/User_Settings.png"/>
+
+- Create an API Token.
+  - Typically you would create a team token that is associated with one or more workspaces when dealing with other work streams). For Terraform Cloud or Enterprise specifically, this might be an Organization Token.
+
+<img alt="API Token" src="./images/Create_Token.png"/>
+
+- Create a new workspace
+
+<img alt="New Workspace" src="./images/New_Workspace.png" width="75%" height="75%"/>
+
+- Once the workspace is created, set any necessary general settings then navigate to Variables on the navigation pane.
+- Create a new _sensitive environment variable_ `TFE_TOKEN` to store your API Token.
+
+<img alt="TFE Token Variable" src="./images/TFE_Token_Variable.png" width="75%" height="75%"/>
+
+#!markdown
+
+## Anatomy of a Resource
+
+Resources are your primary interface with any provider and the single most important element in Terraform. Resources can be viewed as similar to an API in the fact that you are supplying a payload of information that will interact with the provider's APIs to provision that particular set of infrastructure. When speaking with other terraform folks, they may refer to resources as `resource blocks`.
+
+### Resource Block
+
+#### Resource Syntax 
+
+A resource is described by notating the resource block, the type of resource to be configured, and an alias name to refer to that resource by.
+
+```hcl
+resource "azurerm_resource_group" "resource_group" {
+  name     = "terraform-topics-rg"
+  location = "eastus"
+}
+```
+
+#### Resource Arguments
+
+Arguments required by the resource are described in the underlying provider code and listed in the documentation. While it is easy to get started with terraform and the limited documentation provided by the development team, it is still worth knowing what APIs are being utilized within the provider and be familiar with the information those APIs expect. Not all terraform documentation provides the necessary information to create a resource, only a minimal amount of information meant to guide you to the required arguments.
+
+Within each argument are the capability of using terraform expression. This gives you the ability to calculate certain values at plan time that can be provided to the resource for execution. An argument can be one of the following types:
+
+- `string` - signified by surrounding quotes `"string value"`.
+- `number` - A value either whole number or with decimal points. `23` or `23.234`
+- `boolean` - A `true` or `false` value.
+- `object` - Can be a prescribed objet of any primitive type declared in the object schema.
+- `map` - Can be a map of any primitive types.
+- `list` - Declared as `list(type)` can be a list of any primitive type, map or object.
+- `null` - null value declared as `null`.
+
+##### maps / objects
+
+Maps and Objects are a series of key value pairs.
+
+```hcl
+{
+    name   = "Henry"
+    age    = 72
+    fruits = ["banana", "apple"]
+}
+```
+
+#### Resource Behavior
+
+- When creating a new resource, the identifier for that object is stored in state. Order of operations are as followed when evaluating state and configuration.
+  - _Create_ resource configuration that does not exist in the state.
+  - _Destroy_ resource configuration that exists in state but not in code.
+  - _Update in-place_ resources whose arguments have changed.
+  - _Destroy and re-create_ resources whose arguments have changed but cannot be updated in-place.
+
+#### Meta-Arguments
+
+The terraform language makes a set of meta-arguments available to each resource for performing some extraneous operation on the resource itself or after the resource has been provisioned.
+
+- `depends_on` - Used for relying on the prior creation resources in which there is no direct dependency in the current resource.
+- `count` - For iterating through multiple resources using a numerical indices.
+- `for_each` - Iterates through map or sets and provides a key identifier for an indices.
+- `provider` - When needed to select a non-default provider configuration.
+- `lifecycle` - for setting lifecycle customizations. Only literal values may be used due to how the lifecycle is evaluated.
+  - `create_before_destroy`
+  - `prevent_destroy`
+  - `ignore_changes`
+  - `replace_triggered_by`
+  - `Custom Conditional Checks`
+- `timeouts` - Allows for customizing how long certain operations are allowed to take before failing.
+
+### Style Conventions 
+
+- Indent two spaces for each nesting level.
+- Align equal signs for multiple consecutive values.
+- Place nested blocks at bottom of resource, separated by an empty line from the above arguments or other blocks.
+- Use empty lines to separate logical groups of arguments within a block.
+- List meta-argument blocks last in the resource.
+- Try grouping multiple of the same nested blocks together to avoid readability issues.
+
+```hcl
+resource "aws_instance" "example" {
+  count = 2 # meta-argument first
+
+  ami           = "abc123"
+  instance_type = "t2.micro"
+
+  network_interface {
+    # ...
+  }
+
+  lifecycle { # meta-argument block last
+    create_before_destroy = true
+  }
+}
+```
+
+### More Reading!
+
+Please see the following for more information on Types and Style Conventions
+- [Resources](https://developer.hashicorp.com/terraform/language/resources)
+- [Types and Values](https://developer.hashicorp.com/terraform/language/expressions/types)
+- [Resource Behavior](https://developer.hashicorp.com/terraform/language/resources/behavior)
+- [Resource Meta-Arguments](https://developer.hashicorp.com/terraform/language/resources/syntax#meta-arguments)
+- [Lifecycle Meta-Argument](https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle)
+- [Style Convention](https://developer.hashicorp.com/terraform/language/syntax/style)

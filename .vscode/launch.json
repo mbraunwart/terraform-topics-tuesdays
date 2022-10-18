@@ -1,0 +1,15 @@
+{
+    "configurations": [
+        {
+            "name": "Docker Node.js Launch",
+            "type": "docker",
+            "request": "launch",
+            "preLaunchTask": "docker-run: debug",
+            "platform": "node",
+            "node": {
+                "package": "${workspaceFolder}/Session 2 - Creating Resources/Docker/node_app/src/package.json",
+                "localRoot": "${workspaceFolder}/Session 2 - Creating Resources/Docker/node_app/src"
+            }
+        }
+    ]
+}
