@@ -30,3 +30,18 @@ All content can be found in `./Session 1 - Terraform Cloud`. Content of this ses
 - Creating a workspace in Terraform Cloud
 - Running terraform commands remotely.
 - Publishing a module in the Private Module Registry.
+
+## Session 2 - Generating Resources
+
+All content can be found in `./Session 2 - Creating Resources`. Content of this session is produced on a .NET Interactive Notebook. In this particular content it was used primarily for markdown documentation. \
+Several pieces of terraform are laid out in folders. A NodeJS app was created for an example generating a Docker image using the Docker provider. \
+
+The terraform produced in the session follows the below diagram.
+
+<img alt="TFE Token Variable" src="./Session 2 - Creating Resources/images/app_service_deploy.png" width="50%" height="50%"/>
+
+- Anatomy of a Resource
+- Building Resources for Terraform Enterprise
+- Building Base Azure Resources
+- Building Docker Image and Publish to Registry
+- Building Azure Linux App Service
