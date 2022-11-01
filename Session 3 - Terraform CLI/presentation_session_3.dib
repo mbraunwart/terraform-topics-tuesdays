@@ -1,0 +1,221 @@
+#!markdown
+
+# Session 3 - Terraform CLI
+
+Terraform CLI is a single executable application that enables an enduser to access terraform's command line interface for processing terraform files and terraform state.
+
+To view a list of commands available in Terraform CLI, simply run `terraform` with no additional arguments
+
+#!pwsh
+
+cd infra/tfe
+$env:TF_WORKSPACE = "mrb-terraform-topics-tfe"
+$env:TF_CLOUD_ORGANIZATION = "insight"
+terraform
+
+#!markdown
+
+## Overview
+
+Terraform commands expect to be invoked from your infrastructure code's working directory that contains all of your terraform configuration files. 
+
+The main commands serve as your primary interaction with your terraform code and the terraform CLI. 
+
+### Main Commands
+
+- `init` - Prepare your working directory for other commands.
+- `validate` - Check whether the configuration is valid.
+- `plan` - Show changes required by the current configuration.
+- `apply` - Create or update infrastructure.
+- `destroy` - Destroy previously-created infrastructure.
+
+#!markdown
+
+## Terraform Init
+
+The `terraform init` command initializes a working directory containing Terraform configuration files. This is the first command that should be run after writing a new Terraform configuration or cloning an existing one from version control. The `init` command is idempotent which makes it safe to run multiple times.
+
+### Notable Options
+
+- `-input=false` - Used mainly for initializing in automation, will error if input is required.
+- `-no-color` - Removes the console color code formatting on command output. Ideal if your automation performs processing on the console output.
+- `-upgrade` - Opt to upgrade modules and plugins as part of their initialization step. 
+- `-from-module=MODULE_SOURCE` - A type of initialization the copies a module source into an empty working directory. Great for starting with example configuration from a public module, or for checking code out of a repository to get started with.
+
+## Terraform Validate
+
+The `terraform validate` command performs validation on your terraform code without access provider APIs. Ensures that code contains valid syntax and complies to any module, provider, or workspace variable validations before running a plan. 
+
+### Notable Options
+
+- `-json` - Produces output in JSON format.
+
+#!pwsh
+
+terraform init
+
+#!pwsh
+
+terraform init -upgrade
+
+#!pwsh
+
+terraform validate
+
+#!markdown
+
+## Terraform Plan
+
+The `terraform plan` command creates an execution plan from your terraform configuration. When terraform creates a plan, it:
+
+1. Reads the current state of any existing resources and ensures the state file is up-to-date.
+2. Compares the current configuration to the prior state, noting any differences.
+3. Creates an execution plan that describes additions, modifications, or removal of resources.
+
+### Notable Options
+
+Many of these same commands can be used with `terraform apply`.
+
+- `-refresh=false` - Disables the 1st action in the plan process and will create an execution plan with only the modifications from code. 
+- `-replace=ADDRESS` - Creates an execution plan replacing a targeted resource. Ideal for resources that may have degraded over time or become out of sync with state. Formerly `terraform taint`, which is a deprecated command.
+- `-var "KEY='VALUE"` & `-var-file=FILENAME` - `-var` allows for passing in individual variable values on the command line, and `-var-file` allows for targeting tfvar files to be include in your configuration.
+- `-target=ADDRESS` - Creates an execution plan targeting a specific resource in the configuration code. 
+  - <img src="./images/target_address_note.png" />
+- `-out=FILENAME` - Outputs a `tfplan` file that describes a plan execution. Ideal for automated processes where the plan needs to be reviewed or to be analyzed by other terraform commands for an apply can occur. Can be passed to the apply for processing. Does not work with Terrform Cloud.
+- `-parallelism=n` - Default to 10, limits the number of concurrent operations terraform can perform as it is executing the plan. Increase parallelism only within the bounds of your provider's API limits.
+- `-destroy` - Creates a speculative plan of a destroy.
+
+#!pwsh
+
+terraform plan
+
+#!pwsh
+
+terraform plan -target='module.workspaces[\"azure-app\"]'
+
+#!pwsh
+
+terraform plan -var "organization_name=insight"
+
+#!markdown
+
+## Terraform Apply
+
+The `terraform apply` command will create new execution plan if not passed a `tfplan` file. If running with no options, you will be prompted to approve the new execution plan before it can be processed.
+
+### Notable Options
+
+- Options mentioned in [Terraform Plan - Notable Options](#notable-options-2)
+- `-refresh-only` - Create a plan to update terraform state and root module output values.
+- `-auto-approve` - Skips the confirmation process of apply.
+- `-json` - Produces output in JSON format.
+- `-destroy` - Destroys all remote objects managed by a terraform workspace.
+
+## Terraform Destroy
+
+The `terraform destroy` command destroys all remote objects managed by a terraform workspace.
+
+:NOTE: See bottom for `terraform destroy` command.
+
+#!pwsh
+
+terraform apply -target 'module.workspaces[\"azure-app\"]'
+
+#!pwsh
+
+terraform apply -auto-approve
+
+#!pwsh
+
+terraform apply -refresh-only
+
+#!markdown
+
+## Terraform Format
+
+The `terraform fmt` command rewrites terraform configuration files to a canonical format and style. This command applies a subset of the [Terraform language style conventions](https://developer.hashicorp.com/terraform/language/syntax/style).
+
+### Notable Options
+
+- `-check` - Check if the input is formatted.
+- `-recursive` - Scans all terraform configuration in the current directory and child folder and formats them.
+- `-diff` - Display diffs of formatted changes.
+
+:NOTE: For `-diff`, you must have a diff utility installed. \
+I am using [GNU Diffutils](https://www.gnu.org/software/diffutils/) for my example.
+
+#!pwsh
+
+terraform fmt -check -recursive
+
+#!pwsh
+
+terraform fmt -check -diff -recursive
+
+#!pwsh
+
+terraform fmt -recursive
+
+#!markdown
+
+## Terraform Console
+
+The `terraform console` command is an interactive command-line console for evaluating and experimenting with [expressions](https://developer.hashicorp.com/terraform/language/expressions). In order to work with the state file and any created resources in the console, you'll need to initialize the workspace.
+
+### Test Commands
+
+`terraform console` - Access to the terraform console.
+
+- `module.workspaces`
+- `module.workspaces["azure-app"]`
+- `module.workspaces["azure-app"].workspace_id`
+- `format("Workspace ID: %s", module.workspaces["azure-app"].workspace_id)`
+- `[ for workspace in module.workspaces : workspace.workspace_id ]`
+
+If wanting to test more complex functions, it is best to add that function as a local evaluation and output the local value and view it in outputs or in console.
+
+#!markdown
+
+## Terraform Show
+
+The `terraform show` command is a human readable console output of a state or plan file. 
+
+### Notable Options
+
+- `-json` - Produces output in JSON format.
+
+#!pwsh
+
+terraform show
+
+#!pwsh
+
+terraform show -json | ConvertFrom-Json -Depth 10 | ConvertTo-Json -Depth 10
+
+#!markdown
+
+## Terraform State List and State Show
+
+The `terraform state list` command will list resource addresses that are being managed in the state file.
+
+The `terraform state show` command will show the attributes of a single resource managed within the state file. The resource is identified by the address it is stored under in the state file.
+
+#!pwsh
+
+terraform state list
+
+#!pwsh
+
+terraform state list 'module.workspaces[\"aws-app\"]'
+
+#!pwsh
+
+terraform state list -id=ws-Sep3kRCiHkAqRmQV
+
+#!pwsh
+
+terraform state show 'module.workspaces[\"aws-app\"].tfe_workspace.workspace'
+
+#!pwsh
+
+terraform destroy -auto-approve
