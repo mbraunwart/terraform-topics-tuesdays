@@ -37,12 +37,12 @@ module "repo" {
     vulnerability_alerts   = true
   }
 
-  repository_environments = [ {
-    custom_branches = false
-    name = "dev"
+  repository_environments = [{
+    custom_branches    = false
+    name               = "dev"
     protected_branches = false
-    team_reviewers = [ ]
-    user_reviewers = [ ]
-    wait_timer = 1
-  } ]
+    team_reviewers     = []
+    user_reviewers     = []
+    wait_timer         = 1
+  }]
 }

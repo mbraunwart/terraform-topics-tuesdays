@@ -163,8 +163,8 @@ module "workspaces" {
 
 output "flatten_workspace_info" {
   value = flatten([for w in module.workspaces : {
-    workspace_id   = w.workspace_id
-    workspace_name = w.workspace_name
+    workspace_id            = w.workspace_id
+    workspace_name          = w.workspace_name
     workspace_variable_keys = w.workspace_variables
   }])
 }

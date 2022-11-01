@@ -24,5 +24,5 @@ output "ssh_key_id" {
 }
 
 output "workspace_variables" {
-  value = [for wv in tfe_variable.var : wv.key ]
+  value = [for wv in tfe_variable.var : wv.key]
 }
