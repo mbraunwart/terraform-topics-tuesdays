@@ -60,7 +60,7 @@ The terraform produced in the session follows the below diagram.
 
 ## Session 3 - Terraform CLI
 
-[Terraform CLI](https://insightonline.sharepoint.com/:v:/r/sites/DIHashicorp/Shared%20Documents/Terraform/Terraform%20Topics%20Tuesdays/Terraform%20Topics%20Tuesdays-20221101_120015-Meeting%20Recording.mp4?csf=1&web=1&e=b9VXA1&isSPOFile=1)
+[Terraform CLI - Recording](https://insightonline.sharepoint.com/:v:/r/sites/DIHashicorp/Shared%20Documents/Terraform/Terraform%20Topics%20Tuesdays/Terraform%20Topics%20Tuesdays-20221101_120015-Meeting%20Recording.mp4?csf=1&web=1&e=b9VXA1&isSPOFile=1)
 
 All content can be found in `./Session 3 - Terraform CLI`. Content of this session is produced on a Polyglot Notebook.
 
