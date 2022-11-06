@@ -62,6 +62,10 @@ terraform init -upgrade
 
 terraform validate
 
+#!pwsh
+
+terraform init -upgrade; terraform validate
+
 #!markdown
 
 ## Terraform Plan
@@ -78,7 +82,7 @@ Many of these same commands can be used with `terraform apply`.
 
 - `-refresh=false` - Disables the 1st action in the plan process and will create an execution plan with only the modifications from code. 
 - `-replace=ADDRESS` - Creates an execution plan replacing a targeted resource. Ideal for resources that may have degraded over time or become out of sync with state. Formerly `terraform taint`, which is a deprecated command.
-- `-var "KEY='VALUE"` & `-var-file=FILENAME` - `-var` allows for passing in individual variable values on the command line, and `-var-file` allows for targeting tfvar files to be include in your configuration.
+- `-var "'KEY'='VALUE'"` & `-var-file=FILENAME` - `-var` allows for passing in individual variable values on the command line, and `-var-file` allows for targeting tfvar files to be include in your configuration.
 - `-target=ADDRESS` - Creates an execution plan targeting a specific resource in the configuration code. 
   - <img src="./images/target_address_note.png" />
 - `-out=FILENAME` - Outputs a `tfplan` file that describes a plan execution. Ideal for automated processes where the plan needs to be reviewed or to be analyzed by other terraform commands for an apply can occur. Can be passed to the apply for processing. Does not work with Terrform Cloud.
@@ -119,7 +123,7 @@ The `terraform destroy` command destroys all remote objects managed by a terrafo
 
 #!pwsh
 
-terraform apply -target 'module.workspaces[\"azure-app\"]'
+terraform apply -target 'module.workspaces[\"azure-app\"]' -auto-approve
 
 #!pwsh
 
@@ -127,7 +131,7 @@ terraform apply -auto-approve
 
 #!pwsh
 
-terraform apply -refresh-only
+terraform apply -refresh-only -auto-approve
 
 #!markdown
 
@@ -210,7 +214,7 @@ terraform state list 'module.workspaces[\"aws-app\"]'
 
 #!pwsh
 
-terraform state list -id=ws-Sep3kRCiHkAqRmQV
+terraform state list -id=var-3gfHbAiT32FMk6KR
 
 #!pwsh
 
