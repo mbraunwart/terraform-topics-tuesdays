@@ -32,6 +32,8 @@ Most content in these sessions are produced in [Polyglot Notebooks](https://gith
 
 ## Session 1 - Terraform Cloud
 
+[Terraform Cloud - Recording](https://insightonline.sharepoint.com/:v:/r/sites/DIHashicorp/Shared%20Documents/Terraform/Terraform%20Topics%20Tuesdays/Terraform%20Topics%20Tuesdays-20221004_120130-Meeting%20Recording.mp4?csf=1&web=1&e=0POVUq&isSPOFile=1)
+
 All content can be found in `./Session 1 - Terraform Cloud`. Content of this session contains a Polyglot Notebook with markdown and commands presenting the session. Infrastructure as code used within this session reside in `./Session 1 - Terraform Cloud/tfc_workspace` and `./Session 1 - Terraform Cloud/tfc_module`.
 
 - General overview of Terraform Cloud
@@ -40,6 +42,8 @@ All content can be found in `./Session 1 - Terraform Cloud`. Content of this ses
 - Publishing a module in the Private Module Registry.
 
 ## Session 2 - Generating Resources
+
+[Generating Resources - Recording](https://insightonline.sharepoint.com/:v:/r/sites/DIHashicorp/Shared%20Documents/Terraform/Terraform%20Topics%20Tuesdays/Terraform%20Topics%20Tuesdays-20221018_120435-Meeting%20Recording.mp4?csf=1&web=1&e=Mij5jV)
 
 All content can be found in `./Session 2 - Creating Resources`. Content of this session is produced on a Polyglot Notebook. In this particular content it was used primarily for markdown documentation. \
 Several pieces of terraform are laid out in folders. A NodeJS app was created for an example generating a Docker image using the Docker provider. \
@@ -55,6 +59,8 @@ The terraform produced in the session follows the below diagram.
 - Building Azure Linux App Service
 
 ## Session 3 - Terraform CLI
+
+[Terraform CLI](https://insightonline.sharepoint.com/:v:/r/sites/DIHashicorp/Shared%20Documents/Terraform/Terraform%20Topics%20Tuesdays/Terraform%20Topics%20Tuesdays-20221101_120015-Meeting%20Recording.mp4?csf=1&web=1&e=b9VXA1&isSPOFile=1)
 
 All content can be found in `./Session 3 - Terraform CLI`. Content of this session is produced on a Polyglot Notebook.
 
