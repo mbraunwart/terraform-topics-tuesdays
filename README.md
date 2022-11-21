@@ -46,9 +46,7 @@ All content can be found in `./Session 1 - Terraform Cloud`. Content of this ses
 [Generating Resources - Recording](https://insightonline.sharepoint.com/:v:/r/sites/DIHashicorp/Shared%20Documents/Terraform/Terraform%20Topics%20Tuesdays/Terraform%20Topics%20Tuesdays-20221018_120435-Meeting%20Recording.mp4?csf=1&web=1&e=Mij5jV)
 
 All content can be found in `./Session 2 - Creating Resources`. Content of this session is produced on a Polyglot Notebook. In this particular content it was used primarily for markdown documentation. \
-Several pieces of terraform are laid out in folders. A NodeJS app was created for an example generating a Docker image using the Docker provider. \
-
-The terraform produced in the session follows the below diagram.
+Several pieces of terraform are laid out in folders. A NodeJS app was created for an example generating a Docker image using the Docker provider. 
 
 <img alt="TFE Token Variable" src="./Session 2 - Creating Resources/images/app_service_deploy.png" width="50%" height="50%"/>
 
@@ -77,3 +75,5 @@ The terraform included in this session is the same as the TFE terrform from [Ses
   - Console
   - Show
   - State List and State Show
+
+# Session 4 - Multi-Environment Resources

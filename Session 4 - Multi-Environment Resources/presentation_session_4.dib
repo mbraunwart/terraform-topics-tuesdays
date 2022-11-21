@@ -1,0 +1,364 @@
+#!markdown
+
+# Session 4 - Multi-Environment Provisioning
+
+- Talk about options for managing multi-environment deployments.
+  - Terraform Workspace CLI
+  - Environment Branches
+  - Terragrunt
+  - Terraform Cloud Workspaces
+- Talk about the importance of environment based variables.
+- Discuss writing code for environments.
+
+## Environments
+
+Just like software, infrastructure is deployed to environments. Environments are typically a collection of resources that reside underneath an umbrella of security policies and access restrictions. Standard environments reside within a non-production / production mindset, this is most dictated about which data can be accessed in which types of environments. Beneath those two delineations reside 4 typical environments: Development [dev], Testing [test], Staging [stage], Production [prod]. 
+
+### Development
+
+Typically a volatile environment in which nothing should be expected to reside for any particular length of time. This environment is where developers would traditionally do their work, could install or manage varying applications, and generally test their newly written features.
+
+### Testing
+
+When developers have reached a point in their code where they can advance their code to a more stable environment that has the ability to run some better quality integration and smoke tests. Testing might be where your QA team enacts some of their performance testing before advancing into a production environment. Testing and Development will typically have looser policies applied to them in order to allow room for testing.
+
+### Staging
+
+The final stop before production. A more stable set of resources that mirror production in almost every ideal way for final stages of testing. This environment likely has access to mirrored production data and has stricter security policies. Traditionally, staging is used for accumulating all commits that are planned for deployment. A lot of regression testing may take place in staging environments before promotion to production.
+
+### Production
+
+Where all users interact with the final product. The reason we all have a job, to see to it that applications make it here.
+
+## How do I get my Terraform Configurations to these Environments?
+
+As of right now, you might be considering how you move your code into each one of these environments, that's why I made that header! One of the myriad of lessons you learn early on as a developer is DRY (Don't Repeat Yourself). With that in mind, let us consider our prospects for managing multi-environment code bases and deployments. 
+
+- How can I write a set of infrastructure code that deploys in dev, and move that same code to production? 
+- How does the code know which configuration it needs for each environment?
+
+### Side Note
+
+It is fairly easy to manage multiple environment deployments in each of these scenarios with `tfvars` files, passing variables by CLI (`-var`), or setting backend values as environment variables (`-backend-config`). 
+
+### [Variable Definition Precedence](https://developer.hashicorp.com/terraform/language/values/variables#variable-definition-precedence)
+
+If the same variable is assigned multiple values, Terraform uses the last value it finds, overriding any previous values. Note that the same variable cannot be assigned multiple values within a single source.
+
+Terraform loads variables in the following order, with later sources taking precedence over earlier ones:
+
+- Environment variables
+- The terraform.tfvars file, if present.
+- The terraform.tfvars.json file, if present.
+- Any *.auto.tfvars or *.auto.tfvars.json files, processed in lexical order of their filenames.
+- Any -var and -var-file options on the command line, in the order they are provided. (This includes variables set by a Terraform Cloud workspace.)
+
+### Additional Links
+
+A lot of today's session was derived from the following content.
+
+- [How to manage multiple environments with Terraform](https://blog.gruntwork.io/how-to-manage-multiple-environments-with-terraform-32c7bc5d692)
+- [Terraform Workspace CLI](https://developer.hashicorp.com/terraform/cli/commands/workspace)
+- [Terraform Cloud Configuration](https://developer.hashicorp.com/terraform/language/settings/terraform-cloud)
+- [Terraform Backend Configuration](https://developer.hashicorp.com/terraform/language/settings/backends/configuration)
+
+#!mermaid
+
+flowchart LR;
+    branch([fa:fa-code-branch feature]) -- Deploy --> dev;
+    main([fa:fa-code-branch main])-- Deploy --> dev;
+    dev[fa:fa-rocket dev] --> test;
+    test[fa:fa-rocket test]-- if main --> stage;
+    branch-- Pull Request --> main;
+    stage[fa:fa-rocket stage] --> prod;
+    prod[fa:fa-rocket prod];
+
+#!markdown
+
+# Azure Creds
+
+$env:ARM_SUBSCRIPTION_ID="1c6b2cdf-74c6-448e-b9c2-79db4106600b"
+$env:ARM_TENANT_ID="6c637512-c417-4e78-9d62-b61258e4b619"
+$env:ARM_CLIENT_SECRET="keS8Q~GwDDA~ke2J-w2~i7jjvRElKfYXQiEyra8S"
+$env:ARM_CLIENT_ID="efa02987-f044-4bff-b1b4-e3fd6c1cc2a4"
+
+#!markdown
+
+## Terraform Workspace - CLI
+
+Each Terraform Workspace within the CLI maintains a state file within individual workspace folders residing in the `.terraform` folder. Terraform Workspace CLI is ideal if you plan on environment based deployments from a locally managed working directory. You can create workspaces for `dev`, `test`, `staging`, and `prod` and maintain those states locally or through another backend. 
+
+The `terraform workspace` command has a small subset of commands that manage workspaces within the terraform directory. 
+
+Performing a `terraform workspace new WORKSPACE` allows for creating your environment based workspaces. A `terraform workspace list` will list all workspaces managed in the `.terraform` folder. 
+
+To access the context of your current workspace within the code, use the keywords `terraform.workspace`.
+
+```hcl
+name = "resource-name-${terraform.workspace}"
+```
+
+### Code Example
+
+```hcl
+resource "azurerm_resource_group" "rg" {
+  name     = "${var.prefix}-terraform-topics"
+  location = "eastus"
+}
+
+resource "azurerm_mssql_server" "primary" {
+  name                         = "${var.prefix}-primary"
+  resource_group_name          = azurerm_resource_group.rg.name
+  location                     = azurerm_resource_group.rg.location
+  version                      = "12.0"
+  administrator_login          = "terraformtopics"
+  administrator_login_password = "sUp3rEncryp7ed!"
+}
+
+resource "azurerm_mssql_server" "secondary" {
+  count = terraform.workspace == "dev" ? 0 : 1
+
+  name                         = "${var.prefix}-secondary"
+  resource_group_name          = azurerm_resource_group.rg.name
+  location                     = azurerm_resource_group.rg.location
+  version                      = "12.0"
+  administrator_login          = "terraformtopics"
+  administrator_login_password = "sUp3rEncryp7ed!"
+}
+
+resource "azurerm_mssql_database" "db" {
+  name        = "${var.prefix}topicsdb"
+  server_id   = azurerm_mssql_server.primary.id
+  sku_name    = "S1"
+  max_size_gb = "200"
+}
+
+resource "azurerm_mssql_failover_group" "fo" {
+  count = terraform.workspace == "dev" ? 0 : 1
+
+  name      = "${var.prefix}-failover"
+  server_id = azurerm_mssql_server.primary.id
+  databases = [
+    azurerm_mssql_database.db.id
+  ]
+
+  partner_server {
+    id = azurerm_mssql_server.secondary.id
+  }
+
+  read_write_endpoint_failover_policy {
+    mode = "Automatic"
+    grace_minutes = 80
+  }
+}
+```
+
+### Pros and Cons
+Pros:
+- Maintains a single copy of the code base
+- Subset of Terraform CLI
+- Manage environments through `terraform.workspace` parameter.
+
+Cons:
+- Need to be aware of current workspace in your shell at all times.
+- Limited automation capabilities.
+- When working locally, it is difficult to manage upgrading workspace code effectively.
+- Remote backend configuration management is not ideal
+
+#!mermaid
+
+flowchart LR;
+dw[Default Workspace] --> workspaces
+subgraph workspaces;
+    direction LR;
+    dev --> dev_state[terraform_topics_01.tfstateenv:dev]
+    test --> test_state[terraform_topics_01.tfstateenv:test]
+    stage --> stage_state[terraform_topics_01.tfstateenv:stage]
+    prod --> prod_state[terraform_topics_01.tfstateenv:prod]
+end;
+
+#!markdown
+
+## Environment Branches
+
+Environment Branches are the concept of git branches as terraform workspaces.
+
+Using git you would manage branches corresponding to each environment. You may or may not logically develop your code with each environment in mind, but typically maintain different logic in each branch associated with that environment.
+
+In this scenario, code is repeated through branches which becomes a bit unmanageable as the project progresses. As you promote form dev to test, to staging, to prod you may have code that is very specific to that environment that needs to be accounted for in your code bases. 
+
+If you are taking a GitOps approach where a push to a particular branch will fire off the automation necessary to deploy to that environment, and you have all of the proper approval gates in place, then this method may be for you. 
+
+### Pros and Cons
+
+Pros:
+- Native version control system
+- Easier to navigate the code base by environment
+- Can write your code differently to configure each environment
+
+Cons:
+- Duplicated code
+- PR Nightmare
+
+#!mermaid
+
+flowchart LR;
+fb[fa:fa-code-branch Feature Branch]-- Pull Request --> dev
+subgraph dev[DEV Branch];
+    direction TB;
+    dt[fa:fa-play trigger] --> dd[fa:fa-rocket deploy];
+end;
+dev-- Pull Request --> test
+subgraph test[TEST Branch];
+    direction TB;
+    tt[fa:fa-play trigger] --> td[fa:fa-rocket deploy];
+end;
+test-- Pull Request --> stage
+subgraph stage[STAGE Branch];
+    direction TB;
+    st[fa:fa-play trigger] --> sd[fa:fa-rocket deploy];
+end;
+stage-- Pull Request --> prod
+subgraph prod[PROD Branch];
+    direction TB;
+    pt[fa:fa-play trigger] --> pd[fa:fa-rocket deploy];
+end;
+prod;
+stage-- BUG FIX --> fb
+test-- BUG FIX --> fb
+
+#!markdown
+
+## Terragrunt
+
+Terragrunt offers a mix feature set between Terraform Workspaces - CLI and Environment Branches. Terragrunt sets out to help facilitate DRY code and management of multiple backends. Terragrunt has an expectation of treating every workspace as a module and calling it from the terragrunt files. Using a directory structure to maintain your terragrunt files per workspace and environment, these files are written in HCL syntax (the same as terraform) and allows for specific configurations to be set that can be applied to the called terraform code.
+
+
+
+### Example File Structure
+
+```
+.
+├── infra
+│   ├── dev
+│   |   ├── base
+│   |   |   └── terragrunt.hcl
+│   |   ├── app
+│   |   |   └── terragrunt.hcl
+|   |   |
+|   |   └── terragrunt.hcl # Global dev configuration / Backend management
+│   ├── test
+│   |   ├── base
+│   |   |   └── terragrunt.hcl
+│   |   ├── app
+│   |   |   └── terragrunt.hcl
+|   |   |
+|   |   └── terragrunt.hcl # Global test configuration / Backend management
+└── modules
+    ├── base
+    |   ├── main.tf
+    |   ├── outputs.tf
+    |   └── variables.tf
+    └── app
+        ├── main.tf
+        ├── outputs.tf
+        └── variables.tf
+```
+
+The following file `infra/dev/base/terragrunt.hcl` describes any notable difference or inputs regarding the base code base in the dev environment.
+
+```hcl
+terraform {
+  source = "../../../modules/base"
+}
+
+inputs = {
+  environment = "dev"
+  sku         = "Basic"
+}
+```
+
+### Pros and Cons
+
+Pros:
+- Keeps code DRY
+- Manage inputs in smaller files similar to tfvars.
+- Set environment backend configuration for all workspaces.
+
+Cons:
+- Requires maintaining an additional tool.
+- Not natively supported in Terraform Cloud.
+
+#!markdown
+
+## Terraform Cloud Workspaces
+
+Terraform Cloud Workspaces, similar but not the same as Terraform Workspaces CLI, allows you to maintain your code in independent workspaces. Similar to all of the concepts above, your code is managed in a workspace, configured in a terraform backend. Until recently, it was very difficult to manage a terraform cloud backend for multi-environment deployments due to the backend needing to be declared and no way to dynamically pass in the workspace name or associated tags. Environment branching or a configuration similar to terragrunt was the preferred way to maintain your code which created quite the overhead.
+
+Terraform v1.2.0 made available environment variables to set workspace configuration in for Terraform Cloud. This opened up deployment management to multi-environments by allowing the orchestrator to assign the proper workspace for that session. In turn this means your code needs to understand which environment it is being deployed into and how to configure itself for that environment. This helps achieve DRY by maintaining a single code base that has the flexibility to support all environments.
+
+### Environment Variables
+
+These environment variables are notably
+- `TF_CLOUD_ORGANIZATION` - Set to the name of the organization (ex: `"insight`")
+- `TF_WORKSPACE` - Name of the workspace to deploy to.
+
+The key to achieving a single code base deployable to all environments is the ability to logically create configuration that can be used against the same resources and create additional resources where applicable.
+
+Using the concept from Terraform Workspaces CLI, instead of `terraform.workspace` we will simply create an `environment` variable in our code and set that within our workspace variables or pass it in through the CLI. From there, we should be able to select our configurations that will create our resources.
+
+#!mermaid
+
+flowchart LR;
+fb[fa:fa-code-branch feature] --> dev;
+main[fa:fa-code-branch main]-- Deploy --> dev;
+subgraph dev[DEV Environment];
+    direction TB;
+    subgraph ws1[Base Workspace]
+    dt1[fa:fa-play trigger] --> dd1[fa:fa-rocket deploy];
+    end
+    ws1 --> ws2
+    subgraph ws2[App Workspace]
+    dt2[fa:fa-play trigger] --> dd2[fa:fa-rocket deploy];
+    end
+end;
+dev --> test
+subgraph test[TEST Workspace];
+    direction TB;
+    tt[fa:fa-play trigger] --> td[fa:fa-rocket deploy];
+end;
+test-- if main --> stage
+fb-- Pull Request --> main;
+subgraph stage[STAGE Workspace];
+    direction TB;
+    st[fa:fa-play trigger] --> sd[fa:fa-rocket deploy];
+end;    
+stage --> prod
+subgraph prod[PROD Workspace];
+    direction TB;
+    pt[fa:fa-play trigger] --> pd[fa:fa-rocket deploy];
+end;
+prod;
+
+#!markdown
+
+## Retrieve backend
+
+```pwsh
+$resourceGroupName = "tf-backend"
+$storageAccountName = "mrbtfbackend"
+$storageContainer = "terraform"
+$sa = Get-AzStorageAccount -ResourceGroupName $resourceGroupName -Name $storageAccountName
+$saKey = (Get-AzStorageAccountKey -ResourceGroupName $resourceGroupName -Name $sa.StorageAccountName)[0].Value
+$saContext = New-AzStorageContext -StorageAccountName $sa.StorageAccountName -StorageAccountKey $saKey 
+$saContainer = Get-AzStorageContainer -Name $storageContainer -Context $saContext -ErrorAction SilentlyContinue
+$expire = ((Get-Date) + (New-TimeSpan -Minutes 300)).ToUniversalTime() | Get-Date -UFormat '+%Y-%m-%dT%H:%MZ'
+$sasToken = New-AzStorageContainerSASToken -Context $saContext -Name $saContainer.Name -Permission acdlrw -ExpiryTime $expire
+
+terraform init `
+-backend-config="storage_account_name=$($sa.StorageAccountName)" `
+-backend-config="container_name=$($saContainer.Name)" `
+-backend-config="key=terraform_topics_01.tfstate" `
+-backend-config="sas_token=$sasToken" `
+-reconfigure
+```
