@@ -1,9 +1,15 @@
+# Terraform Topics Tuesdays
+
 - [Terraform Topics Tuesdays](#terraform-topics-tuesdays)
+  - [Overview](#overview)
+    - [Polyglot Notebooks](#polyglot-notebooks)
   - [Session 1 - Terraform Cloud](#session-1---terraform-cloud)
   - [Session 2 - Generating Resources](#session-2---generating-resources)
   - [Session 3 - Terraform CLI](#session-3---terraform-cli)
+- [Session 4 - Multi-Environment Provisioning](#session-4---multi-environment-provisioning)
+  - [Mermaid Markdown](#mermaid-markdown)
 
-# Terraform Topics Tuesdays
+## Overview
 
 Terraform Topics Tuesdays plans to cover a practitioner's level of terraform while steadily targeting more advanced topics.
 
@@ -24,7 +30,7 @@ Sessions are currently planned to be covered by Matt Braunwart and special guest
 
 <a href="mailto:matt.braunwart@insight.com">Matt Braunwart @ insight.com</a>
 
-## Polyglot Notebooks
+### Polyglot Notebooks
 
 Most content in these sessions are produced in [Polyglot Notebooks](https://github.com/dotnet/interactive). [VS Code Extension](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.dotnet-interactive-vscode)
 
