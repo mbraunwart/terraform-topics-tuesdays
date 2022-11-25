@@ -77,9 +77,9 @@ flowchart LR;
 
 # Azure Creds
 
-$env:ARM_SUBSCRIPTION_ID="1c6b2cdf-74c6-448e-b9c2-79db4106600b"
-$env:ARM_TENANT_ID="6c637512-c417-4e78-9d62-b61258e4b619"
-$env:ARM_CLIENT_SECRET="keS8Q~GwDDA~ke2J-w2~i7jjvRElKfYXQiEyra8S"
+$env:ARM_SUBSCRIPTION_ID="1c6b2cdf-74c6-448e-b9c2-79db4106600b" \
+$env:ARM_TENANT_ID="6c637512-c417-4e78-9d62-b61258e4b619" \
+$env:ARM_CLIENT_SECRET="keS8Q~GwDDA~ke2J-w2~i7jjvRElKfYXQiEyra8S" \
 $env:ARM_CLIENT_ID="efa02987-f044-4bff-b1b4-e3fd6c1cc2a4"
 
 #!markdown
@@ -339,6 +339,13 @@ subgraph prod[PROD Workspace];
     pt[fa:fa-play trigger] --> pd[fa:fa-rocket deploy];
 end;
 prod;
+
+#!mermaid
+
+flowchart TB
+  ses[fa:fa-hourglass-start Session Start] --> top
+  top[fa:fa-comments Topic Coverage] --> com
+  com[fa:fa-flag-checkered Completed Terraform Topics Session]
 
 #!markdown
 
