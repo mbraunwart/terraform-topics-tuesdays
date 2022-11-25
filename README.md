@@ -106,7 +106,7 @@ All content can be found in `./Session 4 - Multi-Environment Provisioning`. Cont
 
 ```mermaid
 flowchart TB
-  ses[fa:fa-solid fa:fa-hourglass-start Session Start] --> top
-  top[fa:fa-solid fa:fa-comments Topic Coverage] --> com
-  com[fa:fa-duotone fa:fa-flag-checkered Completed Terraform Topics Session]
+  ses[fa:fa-hourglass-start Session Start] --> top
+  top[fa:fa-comments Topic Coverage] --> com
+  com[fa:fa-flag-checkered Completed Terraform Topics Session]
 ```
