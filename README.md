@@ -32,6 +32,8 @@ Most content in these sessions are produced in [Polyglot Notebooks](https://gith
 
 ## Session 1 - Terraform Cloud
 
+10-04-2022
+
 [Terraform Cloud - Recording](https://insightonline.sharepoint.com/:v:/r/sites/DIHashicorp/Shared%20Documents/Terraform/Terraform%20Topics%20Tuesdays/Terraform%20Topics%20Tuesdays-20221004_120130-Meeting%20Recording.mp4?csf=1&web=1&e=0POVUq&isSPOFile=1)
 
 All content can be found in `./Session 1 - Terraform Cloud`. Content of this session contains a Polyglot Notebook with markdown and commands presenting the session. Infrastructure as code used within this session reside in `./Session 1 - Terraform Cloud/tfc_workspace` and `./Session 1 - Terraform Cloud/tfc_module`.
@@ -42,6 +44,8 @@ All content can be found in `./Session 1 - Terraform Cloud`. Content of this ses
 - Publishing a module in the Private Module Registry.
 
 ## Session 2 - Generating Resources
+
+10-18-2022
 
 [Generating Resources - Recording](https://insightonline.sharepoint.com/:v:/r/sites/DIHashicorp/Shared%20Documents/Terraform/Terraform%20Topics%20Tuesdays/Terraform%20Topics%20Tuesdays-20221018_120435-Meeting%20Recording.mp4?csf=1&web=1&e=Mij5jV)
 
@@ -57,6 +61,8 @@ Several pieces of terraform are laid out in folders. A NodeJS app was created fo
 - Building Azure Linux App Service
 
 ## Session 3 - Terraform CLI
+
+11-01-2022
 
 [Terraform CLI - Recording](https://insightonline.sharepoint.com/:v:/r/sites/DIHashicorp/Shared%20Documents/Terraform/Terraform%20Topics%20Tuesdays/Terraform%20Topics%20Tuesdays-20221101_120015-Meeting%20Recording.mp4?csf=1&web=1&e=b9VXA1&isSPOFile=1)
 
@@ -76,4 +82,31 @@ The terraform included in this session is the same as the TFE terrform from [Ses
   - Show
   - State List and State Show
 
-# Session 4 - Multi-Environment Resources
+# Session 4 - Multi-Environment Provisioning
+
+11-15-2022
+
+[Terraform Multi-Environment Provisioning](https://insightonline.sharepoint.com/:v:/r/sites/DIHashicorp/Shared%20Documents/Terraform/Terraform%20Topics%20Tuesdays/Terraform%20Topics%20Tuesdays-20221115_120112-Meeting%20Recording.mp4?csf=1&web=1&e=18M7Uh)
+
+All content can be found in `./Session 4 - Multi-Environment Provisioning`. Content of this session is produced on a Polyglot Notebook and features some small flowcharts with mermaid.
+
+- In this session we briefly covered multi-environment management options with tooling.
+  - `terraform workspace` CLI 
+  - Environment based branching (no live example)
+  - Brief overview of Terragrunt (no running code)
+  - Terraform Cloud Workspaces and Automation with Environment Variables.
+- Writing code for environment based deployments (Keeping it DRY)
+
+## Mermaid Markdown
+
+> It is a JavaScript based diagramming and charting tool that renders Markdown-inspired text definitions to create and modify diagrams dynamically.
+
+- [Mermaid Markdown](https://mermaid-js.github.io/mermaid/#/)
+  - [Mermaid - Live Editor](https://mermaid.live/)
+
+```mermaid
+flowchart TB
+  ses[fa:fa-solid fa:fa-hourglass-start Session Start] --> top
+  top[fa:fa-solid fa:fa-comments Topic Coverage] --> com
+  com[fa:fa-duotone fa:fa-flag-checkered Completed Terraform Topics Session]
+```
