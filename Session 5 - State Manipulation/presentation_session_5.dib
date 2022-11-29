@@ -1,0 +1,736 @@
+#!markdown
+
+# Session 5 - State Manipulation
+
+- What is state?
+  - Purpose of state
+  - Resource Addressing
+- State
+- Managing state
+  - Imports - `terraform import`
+  - Move - `terraform state mv`
+    - `moved` block
+  - Remove - `terraform state rm`
+  - Pull & Push - `terraform state pull` & `terraform state push`
+- Reading the state file
+  - State List - `terraform state list`
+  - State Show - `terraform state show`
+  - Show - `terraform show`
+  - Graph - `terraform graph`
+
+## What is state?
+
+The state maintains a contract between your terraform provider resource configuration and managed infrastructure. The state contains information about the resources as known to terraform based on any custom configuration provided by the infrastructure engineer. Depending on your workspace management tool, your state file may be automatically versioned or need to be manually versioned. The purpose of versioning the state is to know the transitional state between applications and have a configuration eligible to roll back to. Given this complex relationship between your managed infrastructure, and custom configuration, the state file will be maintained in plain text, so if you are in the situation where you need to maintain your own state file, be sure to secure it.
+
+When performing a plan or an apply, one of the first operations performed (after downloading or updating plugins) is an analysis of the state file against your managed infrastructure. This will determine any drift between the state file and the managed infrastructure, this analysis is then evaluated against your configuration to find any further differences or synchronizations. 
+
+### Purpose of state
+
+Terraform maintains metadata about each resource that becomes important when addressing identifying the resource that matches your configuration, able to remain idempotent by comparing known configuration against maintained resources, and addressing and maintaining resource dependencies. 
+
+### Resource Addressing
+
+When working with state, there is a particular syntax when managing specific resources.
+
+`[module path][resource spec]` \
+`module.module_name[index]` \
+`module.foo[0].resource_type.name[0]` \
+`resource_type.name[index]`
+`resource_type.name["key"]`
+
+- [State](https://developer.hashicorp.com/terraform/language/state)
+- [Purpose of State](https://developer.hashicorp.com/terraform/language/state/purpose)
+- [Resource Addressing](https://developer.hashicorp.com/terraform/cli/state/resource-addressing)
+
+#!markdown
+
+## State
+
+### State Version
+
+- Workspace version
+- Unique ID
+- Outputs
+
+```json
+{
+  "version": 4,
+  "terraform_version": "1.3.2",
+  "serial": 41,
+  "lineage": "04aa6228-178d-258b-687c-918adb637182",
+  "outputs": {
+    "flatten_workspace_info": {
+      "value": [
+        {
+          "workspace_id": "ws-huhnddhgLsARRxw8",
+          "workspace_name": "mrb-terraform-topics-azure-base",
+          "workspace_variable_keys": [
+            "ARM_CLIENT_ID",
+            "ARM_CLIENT_SECRET",
+            "ARM_SUBSCRIPTION_ID",
+            "ARM_TENANT_ID"
+          ]
+        }
+      ],
+      "type": [
+        "tuple",
+        [
+          [
+            "object",
+            {
+              "workspace_id": "string",
+              "workspace_name": "string",
+              "workspace_variable_keys": [
+                "tuple",
+                [
+                  "string",
+                  "string",
+                  "string",
+                  "string"
+                ]
+              ]
+            }
+          ]
+        ]
+      ]
+    },
+    "workspace_ids": {
+      "value": [
+        "ws-huhnddhgLsARRxw8"
+      ],
+      "type": [
+        "tuple",
+        [
+          "string"
+        ]
+      ]
+    },
+    "workspace_info": {
+      "value": [
+        "Name: mrb-terraform-topics-azure-base, ID: ws-huhnddhgLsARRxw8"
+      ],
+      "type": [
+        "tuple",
+        [
+          "string"
+        ]
+      ]
+    },
+    "workspace_names": {
+      "value": [
+        "mrb-terraform-topics-azure-base"
+      ],
+      "type": [
+        "tuple",
+        [
+          "string"
+        ]
+      ]
+    },
+    "workspaces": {
+      "value": {
+        "azure-base": {
+          "ssh_key_id": "",
+          "terraform_version": "1.3.4",
+          "workspace_description": "",
+          "workspace_id": "ws-huhnddhgLsARRxw8",
+          "workspace_name": "mrb-terraform-topics-azure-base",
+          "workspace_variables": [
+            "ARM_CLIENT_ID",
+            "ARM_CLIENT_SECRET",
+            "ARM_SUBSCRIPTION_ID",
+            "ARM_TENANT_ID"
+          ]
+        }
+      },
+      "type": [
+        "object",
+        {
+          "azure-base": [
+            "object",
+            {
+              "ssh_key_id": "string",
+              "terraform_version": "string",
+              "workspace_description": "string",
+              "workspace_id": "string",
+              "workspace_name": "string",
+              "workspace_variables": [
+                "tuple",
+                [
+                  "string",
+                  "string",
+                  "string",
+                  "string"
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  ```
+
+### Resources
+
+- Resource address and info
+- Returned information from managed resources
+
+```json
+  "resources": [
+    {
+      "module": "module.workspaces[\"azure-base\"]",
+      "mode": "data",
+      "type": "tfe_organization",
+      "name": "org",
+      "provider": "provider[\"registry.terraform.io/hashicorp/tfe\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "assessments_enforced": false,
+            "collaborator_auth_policy": "two_factor_mandatory",
+            "cost_estimation_enabled": false,
+            "email": "dave.benedic@insight.com",
+            "external_id": "org-FYY5g1raGkAfBS5p",
+            "id": "org-FYY5g1raGkAfBS5p",
+            "name": "insight",
+            "owners_team_saml_role_id": "",
+            "send_passing_statuses_for_untriggered_speculative_plans": true,
+            "two_factor_conformant": true
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.workspaces[\"azure-base\"]",
+      "mode": "managed",
+      "type": "tfe_variable",
+      "name": "var",
+      "provider": "provider[\"registry.terraform.io/hashicorp/tfe\"]",
+      "instances": [
+        {
+          "index_key": "ARM_CLIENT_ID",
+          "schema_version": 1,
+          "attributes": {
+            "category": "env",
+            "description": "mrb-terraform-topics client ID",
+            "hcl": false,
+            "id": "var-wio92tuNKaGQhc1e",
+            "key": "ARM_CLIENT_ID",
+            "sensitive": true,
+            "value": "efa02987-f044-4bff-b1b4-e3fd6c1cc2a4",
+            "variable_set_id": null,
+            "workspace_id": "ws-huhnddhgLsARRxw8"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ==",
+          "dependencies": [
+            "module.workspaces.data.tfe_organization.org",
+            "module.workspaces.tfe_workspace.workspace"
+          ]
+        },
+        {
+          "index_key": "ARM_CLIENT_SECRET",
+          "schema_version": 1,
+          "attributes": {
+            "category": "env",
+            "description": "mrb-terraform-topics client secret",
+            "hcl": false,
+            "id": "var-tbNgjqWdedeYzL1X",
+            "key": "ARM_CLIENT_SECRET",
+            "sensitive": true,
+            "value": "iGT8Q~FXlHMaTjv4HAQkx_f55qjKqRwNwQxy6bbwn",
+            "variable_set_id": null,
+            "workspace_id": "ws-huhnddhgLsARRxw8"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ==",
+          "dependencies": [
+            "module.workspaces.data.tfe_organization.org",
+            "module.workspaces.tfe_workspace.workspace"
+          ]
+        },
+        {
+          "index_key": "ARM_SUBSCRIPTION_ID",
+          "schema_version": 1,
+          "attributes": {
+            "category": "env",
+            "description": "ARM Subscription ID - Visual Studio Enterprise Subscription",
+            "hcl": false,
+            "id": "var-fn2JCpZ5H4hsGRiG",
+            "key": "ARM_SUBSCRIPTION_ID",
+            "sensitive": false,
+            "value": "1c6b2cdf-74c6-448e-b9c2-79db4106600b",
+            "variable_set_id": null,
+            "workspace_id": "ws-huhnddhgLsARRxw8"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ==",
+          "dependencies": [
+            "module.workspaces.data.tfe_organization.org",
+            "module.workspaces.tfe_workspace.workspace"
+          ]
+        },
+        {
+          "index_key": "ARM_TENANT_ID",
+          "schema_version": 1,
+          "attributes": {
+            "category": "env",
+            "description": "ARM Tenant ID",
+            "hcl": false,
+            "id": "var-xdwZGMeKqobtkkx9",
+            "key": "ARM_TENANT_ID",
+            "sensitive": false,
+            "value": "6c637512-c417-4e78-9d62-b61258e4b619",
+            "variable_set_id": null,
+            "workspace_id": "ws-huhnddhgLsARRxw8"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ==",
+          "dependencies": [
+            "module.workspaces.data.tfe_organization.org",
+            "module.workspaces.tfe_workspace.workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.workspaces[\"azure-base\"]",
+      "mode": "managed",
+      "type": "tfe_workspace",
+      "name": "workspace",
+      "provider": "provider[\"registry.terraform.io/hashicorp/tfe\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "agent_pool_id": "",
+            "allow_destroy_plan": true,
+            "assessments_enabled": false,
+            "auto_apply": false,
+            "description": "",
+            "execution_mode": "remote",
+            "file_triggers_enabled": true,
+            "global_remote_state": false,
+            "id": "ws-huhnddhgLsARRxw8",
+            "name": "mrb-terraform-topics-azure-base",
+            "operations": true,
+            "organization": "insight",
+            "queue_all_runs": true,
+            "remote_state_consumer_ids": [],
+            "speculative_enabled": true,
+            "ssh_key_id": "",
+            "structured_run_output_enabled": true,
+            "tag_names": [],
+            "terraform_version": "1.3.4",
+            "trigger_patterns": null,
+            "trigger_prefixes": null,
+            "vcs_repo": [],
+            "working_directory": "./infra/Base"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ==",
+          "dependencies": [
+            "module.workspaces.data.tfe_organization.org"
+          ]
+        }
+      ]
+    }
+  ],
+  "check_results": []
+}
+```
+
+### Database example
+
+```json
+{
+  "version": 4,
+  "terraform_version": "1.3.2",
+  "serial": 4,
+  "lineage": "77f6ed9c-d7d6-7adb-6732-fe1bb0c4565d",
+  "outputs": {},
+  "resources": [
+    {
+      "mode": "managed",
+      "type": "azurerm_mssql_database",
+      "name": "db",
+      "provider": "provider[\"registry.terraform.io/hashicorp/azurerm\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "auto_pause_delay_in_minutes": 0,
+            "collation": "SQL_Latin1_General_CP1_CI_AS",
+            "create_mode": "Default",
+            "creation_source_database_id": null,
+            "elastic_pool_id": "",
+            "geo_backup_enabled": true,
+            "id": "/subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/mrb-terraform-topics/providers/Microsoft.Sql/servers/mrb-primary/databases/mrbtopicsdb",
+            "import": [],
+            "ledger_enabled": false,
+            "license_type": "",
+            "long_term_retention_policy": [
+              {
+                "monthly_retention": "PT0S",
+                "week_of_year": 0,
+                "weekly_retention": "PT0S",
+                "yearly_retention": "PT0S"
+              }
+            ],
+            "maintenance_configuration_name": "SQL_Default",
+            "max_size_gb": 200,
+            "min_capacity": 0,
+            "name": "mrbtopicsdb",
+            "read_replica_count": 0,
+            "read_scale": false,
+            "recover_database_id": null,
+            "restore_dropped_database_id": null,
+            "restore_point_in_time": null,
+            "sample_name": null,
+            "server_id": "/subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/mrb-terraform-topics/providers/Microsoft.Sql/servers/mrb-primary",
+            "short_term_retention_policy": [
+              {
+                "backup_interval_in_hours": 24,
+                "retention_days": 7
+              }
+            ],
+            "sku_name": "S1",
+            "storage_account_type": "Geo",
+            "tags": null,
+            "threat_detection_policy": [
+              {
+                "disabled_alerts": [],
+                "email_account_admins": "Disabled",
+                "email_addresses": [],
+                "retention_days": 0,
+                "state": "Disabled",
+                "storage_account_access_key": "",
+                "storage_endpoint": ""
+              }
+            ],
+            "timeouts": null,
+            "transparent_data_encryption_enabled": true,
+            "zone_redundant": false
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozNjAwMDAwMDAwMDAwLCJkZWxldGUiOjM2MDAwMDAwMDAwMDAsInJlYWQiOjMwMDAwMDAwMDAwMCwidXBkYXRlIjozNjAwMDAwMDAwMDAwfSwic2NoZW1hX3ZlcnNpb24iOiIxIn0=",
+          "dependencies": [
+            "azurerm_mssql_server.primary",
+            "azurerm_resource_group.rg"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "azurerm_mssql_server",
+      "name": "primary",
+      "provider": "provider[\"registry.terraform.io/hashicorp/azurerm\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "administrator_login": "terraformtopics",
+            "administrator_login_password": "sUp3rEncryp7ed!",
+            "azuread_administrator": [],
+            "connection_policy": "Default",
+            "fully_qualified_domain_name": "mrb-primary.database.windows.net",
+            "id": "/subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/mrb-terraform-topics/providers/Microsoft.Sql/servers/mrb-primary",
+            "identity": [],
+            "location": "eastus",
+            "minimum_tls_version": "1.2",
+            "name": "mrb-primary",
+            "outbound_network_restriction_enabled": false,
+            "primary_user_assigned_identity_id": "",
+            "public_network_access_enabled": true,
+            "resource_group_name": "mrb-terraform-topics",
+            "restorable_dropped_database_ids": [],
+            "tags": null,
+            "timeouts": null,
+            "version": "12.0"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozNjAwMDAwMDAwMDAwLCJkZWxldGUiOjM2MDAwMDAwMDAwMDAsInJlYWQiOjMwMDAwMDAwMDAwMCwidXBkYXRlIjozNjAwMDAwMDAwMDAwfX0=",
+          "dependencies": [
+            "azurerm_resource_group.rg"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "azurerm_resource_group",
+      "name": "rg",
+      "provider": "provider[\"registry.terraform.io/hashicorp/azurerm\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "/subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/mrb-terraform-topics",
+            "location": "eastus",
+            "name": "mrb-terraform-topics",
+            "tags": null,
+            "timeouts": null
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo1NDAwMDAwMDAwMDAwLCJkZWxldGUiOjU0MDAwMDAwMDAwMDAsInJlYWQiOjMwMDAwMDAwMDAwMCwidXBkYXRlIjo1NDAwMDAwMDAwMDAwfX0="
+        }
+      ]
+    }
+  ],
+  "check_results": []
+}
+```
+
+#!pwsh
+
+cd '.\infra\azure\'
+
+$env:ARM_TENANT_ID="6c637512-c417-4e78-9d62-b61258e4b619"
+$env:ARM_SUBSCRIPTION_ID="1c6b2cdf-74c6-448e-b9c2-79db4106600b"
+$env:ARM_CLIENT_SECRET="JU_8Q~yNl94cXfO_UsoqWQZDgDcDWqplKXOiwdbW"
+$env:ARM_CLIENT_ID="efa02987-f044-4bff-b1b4-e3fd6c1cc2a4"
+
+az group export -n terraform-topics-nov > terraform-topics-nov.json
+
+#!markdown
+
+## Managing State
+
+So now that you are familiar with the state and what its purpose is. What can we do with it? As you know you can create new resources via terraform configuration files, but what about existing resources? 
+
+Working through existing resources is fairly easy if you have access to the ID of those resources.
+
+### Terraform Import
+
+`terraform import` allows you to import existing managed infrastructure into resource blocks for further adaptability. Minimally you only need to provide an empty resource block with a unique resource address to associate the imported infrastructure to be managed by state. 
+
+Once imported, you then need to provide at least the default required attributes in order to properly validate and plan the configuration you wish to maintain. You can utilize the state created from your empty shell imports to model that configuration.
+
+`terraform import resource_type.name id` \
+`terraform import resource_type.name[index] id` \
+`terraform import resource_type.name["key"] id`
+
+#### Note
+
+Not all resources can be imported. Please be sure that you reference the terraform documentation for each resource and evaluate whether that resource can be imported or not.
+
+- [`terraform import`](https://developer.hashicorp.com/terraform/cli/commands/import)
+
+#!pwsh
+
+terraform import azurerm_resource_group.rg /subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/terraform-topics-nov
+
+#!pwsh
+
+terraform plan
+
+#!pwsh
+
+terraform import azurerm_storage_account.mrbtest1 /subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/terraform-topics-nov/providers/Microsoft.Storage/storageAccounts/mrbtest1
+
+#!pwsh
+
+terraform plan
+
+#!pwsh
+
+terraform import azurerm_storage_account.mrbtest2 /subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/terraform-topics-nov/providers/Microsoft.Storage/storageAccounts/mrbtest2
+terraform import azurerm_service_plan.asp1 /subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/terraform-topics-nov/providers/Microsoft.Web/serverfarms/ASP-terraformtopicsnov-8d06
+terraform import azurerm_service_plan.asp2 /subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/terraform-topics-nov/providers/Microsoft.Web/serverfarms/ASP-terraformtopicsnov-bd6e
+terraform import azurerm_linux_function_app.fapp1 /subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/terraform-topics-nov/providers/Microsoft.Web/sites/mrb-function-app-1
+terraform import azurerm_windows_function_app.fapp2 /subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/terraform-topics-nov/providers/Microsoft.Web/sites/mrb-function-app-2
+terraform import azurerm_application_insights.appin1 /subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/terraform-topics-nov/providers/microsoft.insights/components/mrb-function-app-1
+terraform import azurerm_application_insights.appin2 /subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/terraform-topics-nov/providers/microsoft.insights/components/mrb-function-app-2
+
+#!pwsh
+
+terraform plan
+
+#!pwsh
+
+terraform apply --auto-approve
+
+#!markdown
+
+### State Move
+
+`terraform state mv` is used in the event that you wish to refactor your code but maintain management of your resources. This refactoring of code typically involves a change in the resource address that would alert the state to a new resource needing be created even though the managed infrastructure already exists in state.
+
+- `-dry-run` - Utilize this option when wanting to test a `terraform state mv` without performing the move itself.
+
+`terraform state mv 'resource_type.name[0]' 'resource_type.name[\"new key\"]'` \
+`terraform state mv 'resource_type.name' 'module.new_module[\"module one\"].resource_type.name'`
+
+- [`terraform state mv`](https://developer.hashicorp.com/terraform/cli/commands/state/mv)
+
+#!pwsh
+
+terraform plan
+
+#!pwsh
+
+terraform state mv 'azurerm_storage_account.mrbtest1' 'azurerm_storage_account.fx_sa[\"mrbtest1\"]'
+
+#!pwsh
+
+terraform state mv 'azurerm_storage_account.mrbtest2' 'azurerm_storage_account.fx_sa[\"mrbtest2\"]'
+
+#!pwsh
+
+terraform plan
+
+#!pwsh
+
+terraform state mv 'azurerm_service_plan.asp1' 'azurerm_service_plan.fx_asp[\"asp1\"]'
+terraform state mv 'azurerm_service_plan.asp2' 'azurerm_service_plan.fx_asp[\"asp2\"]'
+terraform plan
+
+#!markdown
+
+### Moved Block
+
+So seeing how `terraform state mv` functions. It will lock the state file, perform the modifications in state, and unlock the state file. The downside is that it can only perform one move per operation so batching moves is out of the question.... with the CLI.
+
+#!markdown
+
+<img src="./images/Eureka.webp"/>
+
+However! As of Terraform v1.1, along comes the `moved` block.
+
+```hcl
+moved {
+    from = old_address.name
+    to = new_address.name
+}
+```
+
+The benefits of performing `moved` blocks in code:
+
+- Maintain a history of all of the moves you have made in your code.
+- Batch up multiple moves that can occur in a single apply.
+- Plan against your moved code to for a more precise execution plan.
+
+#### Note
+
+HashiCorp recommends to keep `moved` blocks below the resource that has been modified.
+
+- [Refactoring](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring)
+
+#!pwsh
+
+terraform apply --auto-approve
+
+#!markdown
+
+### State Remove
+
+Removing items from state is a relatively easy venture. You can remove all items associated with a `count` or a `for_each` by simply targeting the resource address without the index.
+
+`resource_type.name`
+
+However, you may want to ask yourself the purpose for removing resources. After all, we assume the resource still exists, removing it from state means it will no longer be managed by the terraform code, so what reason could you want to do this?
+
+- The resource has become out of sync with the configuration code.
+
+It may have been a while since this resource has last been maintained, a number of attributes have been updated manually and running the apply may risk failure to the application and/or underlying services.
+
+- Deprecation has occurred in the provider.
+
+As we have witnessed in the provider version upgrade of AzureRM from 2.99 to 3.0, a number of resources were created for granularity. With this addition the existing resources were deprecated and there was no clear upgrade path. This meant that code needs to be updated to reflect the new resources, attributes may have been modified or disappeared completely, your configuration mappings around these resources are now stale and need to be logically rethought.
+
+#### State remove as a strategy
+
+Given these couple of scenarios, a strategy might be to remove the resources from state altogether and import the resources anew. This may help ease the burden of thinking through how to perform a `terraform state mv` and take the path of least resistance toward a `terraform import`. The import strategy will also give you the ability to compare and contrast changes between the resources and attributes and give you the ability to refactor your code over time.
+
+- [`terraform state rm`](https://developer.hashicorp.com/terraform/cli/commands/state/rm)
+
+#!pwsh
+
+terraform state rm 'azurerm_application_insights.appin'
+terraform plan
+
+#!pwsh
+
+terraform import 'azurerm_application_insights.appin[\"appin1\"]' /subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/terraform-topics-nov/providers/microsoft.insights/components/mrb-function-app-1
+terraform import 'azurerm_application_insights.appin[\"appin2\"]' /subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/terraform-topics-nov/providers/microsoft.insights/components/mrb-function-app-2
+terraform plan
+
+#!markdown
+
+### Pull & Push
+
+Two other commands are available for managing state files in remote backends or Terraform Cloud.
+
+`terraform state pull` downloads the state file from the remote backend and upgrades the local copy to the latest version of the state. It will also upgrade the current terraform workspace version to match your current terraform version. This gives you the ability to modify the state file locally, in addition to performing query commands with another tool such as [jq](https://stedolan.github.io/jq/).
+
+`terraform state push` uploads the local state to a remote backend. In so doing, terraform performs a couple of checks to prevent you from making unsafe changes.
+* **Differing Lineage** - if the _lineage_ value in the state file differs, terraform will now allow you to push state.
+* **Higher remote serial** - if the "serial" value in the remote state is higher than the state being pushed, terraform will now allow you to push state.
+
+**NOT RECOMMENDED** \
+Both safety checks can be disabled by using the `-force` flag. 
+
+- [`terraform state pull`](https://developer.hashicorp.com/terraform/cli/commands/state/pull)
+- [`terraform state push`](https://developer.hashicorp.com/terraform/cli/commands/state/push)
+
+#!markdown
+
+## Reading the state file
+
+Everything we have covered above is pretty handy if you know the resource addresses. To view the resources managed in your state file, there are a few ways to do this. Each commands allows you to view data about resources in various manners.
+
+### Terraform State List
+
+List the individual addresses managed in the state file.
+
+- [`terraform state list`](https://developer.hashicorp.com/terraform/cli/commands/state/list)
+
+#!pwsh
+
+terraform state list
+
+#!markdown
+
+### Terraform State Show
+
+Display the details about a given resource.
+
+`terraform state show resource_type.name`
+
+- [`terraform state show`](https://developer.hashicorp.com/terraform/cli/commands/state/show)
+
+#!pwsh
+
+terraform state show 'azurerm_linux_function_app.fapp1'
+
+#!markdown
+
+### Terraform Show
+
+Displays the entire state file in a human readable format.
+
+- [`terraform show`](https://developer.hashicorp.com/terraform/cli/commands/show)
+
+#!pwsh
+
+terraform show
+
+#!markdown
+
+### Terraform Graph
+
+Outputs a visual execution of the terraform configuration or execution plan.
+
+- `type-plan` - Type of plan to graph: `plan`, `plan-destroy`, `apply`, `validate`, `input`, `refresh`.
+- `-draw-cycles` - Highlights cycle errors (not sure what this means.)
+
+* [terraform graph](https://developer.hashicorp.com/terraform/cli/commands/show)
+* [GraphViz dot](https://graphviz.org/docs/layouts/dot/)
+
+#!pwsh
+
+terraform graph | dot -Tsvg > graph.svg

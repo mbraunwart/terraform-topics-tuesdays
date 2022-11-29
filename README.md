@@ -88,7 +88,7 @@ The terraform included in this session is the same as the TFE terrform from [Ses
   - Show
   - State List and State Show
 
-# Session 4 - Multi-Environment Provisioning
+## Session 4 - Multi-Environment Provisioning
 
 11-15-2022
 
@@ -103,7 +103,7 @@ All content can be found in `./Session 4 - Multi-Environment Provisioning`. Cont
   - Terraform Cloud Workspaces and Automation with Environment Variables.
 - Writing code for environment based deployments (Keeping it DRY)
 
-## Mermaid Markdown
+### Mermaid Markdown
 
 > It is a JavaScript based diagramming and charting tool that renders Markdown-inspired text definitions to create and modify diagrams dynamically.
 
