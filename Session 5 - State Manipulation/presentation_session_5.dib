@@ -30,12 +30,12 @@ Terraform maintains metadata about each resource that becomes important when add
 
 ### Resource Addressing
 
-When working with state, there is a particular syntax when managing specific resources.
+When working with state, there is a particular syntax when addressing resources.
 
 `[module path][resource spec]` \
 `module.module_name[index]` \
 `module.foo[0].resource_type.name[0]` \
-`resource_type.name[index]`
+`resource_type.name[index]` \
 `resource_type.name["key"]`
 
 - [State](https://developer.hashicorp.com/terraform/language/state)
@@ -494,13 +494,13 @@ $env:ARM_SUBSCRIPTION_ID="1c6b2cdf-74c6-448e-b9c2-79db4106600b"
 $env:ARM_CLIENT_SECRET="JU_8Q~yNl94cXfO_UsoqWQZDgDcDWqplKXOiwdbW"
 $env:ARM_CLIENT_ID="efa02987-f044-4bff-b1b4-e3fd6c1cc2a4"
 
-az group export -n terraform-topics-nov > terraform-topics-nov.json
+# az group export -n terraform-topics-nov > terraform-topics-nov.json
 
 #!markdown
 
 ## Managing State
 
-So now that you are familiar with the state and what its purpose is. What can we do with it? As you know you can create new resources via terraform configuration files, but what about existing resources? 
+So now that you are familiar with the state and what its purpose is. How do we populate it? As you know you can create new resources via terraform configuration files, but what about existing resources? 
 
 Working through existing resources is fairly easy if you have access to the ID of those resources.
 
@@ -511,7 +511,7 @@ Working through existing resources is fairly easy if you have access to the ID o
 Once imported, you then need to provide at least the default required attributes in order to properly validate and plan the configuration you wish to maintain. You can utilize the state created from your empty shell imports to model that configuration.
 
 `terraform import resource_type.name id` \
-`terraform import resource_type.name[index] id` \
+`terraform import resource_type.name[0] id` \
 `terraform import resource_type.name["key"] id`
 
 #### Note
@@ -522,6 +522,7 @@ Not all resources can be imported. Please be sure that you reference the terrafo
 
 #!pwsh
 
+terraform init
 terraform import azurerm_resource_group.rg /subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/terraform-topics-nov
 
 #!pwsh
@@ -542,7 +543,7 @@ terraform import azurerm_storage_account.mrbtest2 /subscriptions/1c6b2cdf-74c6-4
 terraform import azurerm_service_plan.asp1 /subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/terraform-topics-nov/providers/Microsoft.Web/serverfarms/ASP-terraformtopicsnov-8d06
 terraform import azurerm_service_plan.asp2 /subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/terraform-topics-nov/providers/Microsoft.Web/serverfarms/ASP-terraformtopicsnov-bd6e
 terraform import azurerm_linux_function_app.fapp1 /subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/terraform-topics-nov/providers/Microsoft.Web/sites/mrb-function-app-1
-terraform import azurerm_windows_function_app.fapp2 /subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/terraform-topics-nov/providers/Microsoft.Web/sites/mrb-function-app-2
+terraform import azurerm_linux_function_app.fapp2 /subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/terraform-topics-nov/providers/Microsoft.Web/sites/mrb-function-app-2
 terraform import azurerm_application_insights.appin1 /subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/terraform-topics-nov/providers/microsoft.insights/components/mrb-function-app-1
 terraform import azurerm_application_insights.appin2 /subscriptions/1c6b2cdf-74c6-448e-b9c2-79db4106600b/resourceGroups/terraform-topics-nov/providers/microsoft.insights/components/mrb-function-app-2
 
@@ -585,19 +586,19 @@ terraform plan
 
 #!pwsh
 
-terraform state mv 'azurerm_service_plan.asp1' 'azurerm_service_plan.fx_asp[\"asp1\"]'
-terraform state mv 'azurerm_service_plan.asp2' 'azurerm_service_plan.fx_asp[\"asp2\"]'
+# terraform state mv 'azurerm_service_plan.asp1' 'azurerm_service_plan.fx_asp[\"asp1\"]'
+# terraform state mv 'azurerm_service_plan.asp2' 'azurerm_service_plan.fx_asp[\"asp2\"]'
 terraform plan
 
 #!markdown
 
 ### Moved Block
 
-So seeing how `terraform state mv` functions. It will lock the state file, perform the modifications in state, and unlock the state file. The downside is that it can only perform one move per operation so batching moves is out of the question.... with the CLI.
+Understanding how `terraform state mv` functions: First terraform will lock the state file, followed by performing the modifications in state, and finally unlocking the state file. The downside to this process is that it can only perform one move per operation so batching moves is out of the question.... with the CLI.
 
 #!markdown
 
-<img src="./images/Eureka.webp"/>
+<img height="400px" width="600px" src="./images/Eureka.webp"/>
 
 However! As of Terraform v1.1, along comes the `moved` block.
 
@@ -733,4 +734,5 @@ Outputs a visual execution of the terraform configuration or execution plan.
 
 #!pwsh
 
+cd ./infra/azure
 terraform graph | dot -Tsvg > graph.svg
