@@ -6,8 +6,9 @@
   - [Session 1 - Terraform Cloud](#session-1---terraform-cloud)
   - [Session 2 - Generating Resources](#session-2---generating-resources)
   - [Session 3 - Terraform CLI](#session-3---terraform-cli)
-- [Session 4 - Multi-Environment Provisioning](#session-4---multi-environment-provisioning)
-  - [Mermaid Markdown](#mermaid-markdown)
+  - [Session 4 - Multi-Environment Provisioning](#session-4---multi-environment-provisioning)
+    - [Mermaid Markdown](#mermaid-markdown)
+  - [Session 5 - State Manipulation](#session-5---state-manipulation)
 
 ## Overview
 
