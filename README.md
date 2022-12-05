@@ -92,7 +92,7 @@ The terraform included in this session is the same as the TFE terrform from [Ses
 
 11-15-2022
 
-[Multi-Environment Provisioning](https://insightonline.sharepoint.com/:v:/r/sites/DIHashicorp/Shared%20Documents/Terraform/Terraform%20Topics%20Tuesdays/Terraform%20Topics%20Tuesdays-20221115_120112-Meeting%20Recording.mp4?csf=1&web=1&e=18M7Uh)
+[Multi-Environment Provisioning - Recording](https://insightonline.sharepoint.com/:v:/r/sites/DIHashicorp/Shared%20Documents/Terraform/Terraform%20Topics%20Tuesdays/Terraform%20Topics%20Tuesdays-20221115_120112-Meeting%20Recording.mp4?csf=1&web=1&e=18M7Uh)
 
 All content can be found in `./Session 4 - Multi-Environment Provisioning`. Content of this session is produced on a Polyglot Notebook and features some small flowcharts with mermaid.
 
@@ -119,7 +119,7 @@ flowchart TB
 
 ## Session 5 - State Manipulation
 
-[State Manipulation](https://insightonline.sharepoint.com/:v:/r/sites/DIHashicorp/Shared%20Documents/Terraform/Terraform%20Topics%20Tuesdays/Terraform%20Topics%20Tuesdays-20221129_120157-Meeting%20Recording.mp4?csf=1&web=1&e=2As7nx)
+[State Manipulation - Recording](https://insightonline.sharepoint.com/:v:/r/sites/DIHashicorp/Shared%20Documents/Terraform/Terraform%20Topics%20Tuesdays/Terraform%20Topics%20Tuesdays-20221129_120157-Meeting%20Recording.mp4?csf=1&web=1&e=2As7nx)
 
 All content can be found in `./Session 5 - State Manipulation`. Content of this session is produced on a Polyglot Notebook.
 
